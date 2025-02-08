@@ -47,10 +47,26 @@ class PolizasController {
   async crearPoliza(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const poliza: Poliza = req.body;
+      
+      // evitar duplicidad
+      const [existingPolizas] = await pool.execute<RowDataPacket[]>(
+        'SELECT * FROM polizas WHERE numero_poliza = ? AND nombre_compania = ?',
+        [poliza.numero_poliza, poliza.nombre_compania]
+      );
+
+      if ((existingPolizas as any[]).length > 0) {
+        res.status(400).json({
+          success: false,
+          message: 'Ya existe una póliza con este número para esta compañía'
+        });
+        return;
+      }
+
       await pool.execute(
         'INSERT INTO polizas (id_compania, nombre_compania, numero_poliza, fecha_emision, estado, prima, seccion) VALUES (?, ?, ?, ?, ?, ?, ?)',
         [poliza.id_compania, poliza.nombre_compania, poliza.numero_poliza, poliza.fecha_emision, poliza.estado, poliza.prima, poliza.seccion]
       );
+      
       res.status(201).json({ 
         success: true,
         message: 'Póliza creada exitosamente' 

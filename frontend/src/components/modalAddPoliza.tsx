@@ -33,7 +33,8 @@ export default function ModalAddPoliza({ isOpen, onClose, onSubmit }: ModalAddPo
       showNotification('Póliza creada exitosamente', 'success');
       onClose();
     } catch (error: any) {
-      showNotification(error.message || 'Error al crear la póliza', 'error');
+      const errorMessage = error.response?.data?.message || 'Error al crear la póliza';
+      showNotification(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
